@@ -11,4 +11,8 @@ urlpatterns = [
     # path('api/users/', include('users.urls')),
     # path('api/products/', include('products.urls')),
     # path('api/orders/', include('orders.urls')),
+    
+    # 英文: Route for epr module
+    # 中文: epr 模块的路由
+    path('api/epr/', include('epr.urls')),
 ]
