@@ -8,7 +8,7 @@ app_name = 'epr'
 # 英文: URL patterns for EPR module
 # 中文: EPR 模块的路由规则
 urlpatterns = [
-    # 英文: Map the index URL to the epr_index view
-    # 中文: 将 index 路由映射到 epr_index 视图
-    path('index/', views.epr_index, name='index'),
+    # 英文: Map the config URL to the EprConfigAPIView
+    # 中文: 将 config 路由映射到 EprConfigAPIView
+    path('configs/', views.EprConfigAPIView.as_view(), name='config-list'),
 ]
