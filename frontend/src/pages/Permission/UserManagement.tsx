@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Table, Button, Input, Select, Space, Tag, Switch, Modal } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Table, Button, Input, Select, Space, Tag, Switch, Modal, message } from 'antd';
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import UserEditModal from './UserEditModal';
+import request from '../../utils/request';
 
 const { Option } = Select;
 const { confirm } = Modal;
@@ -15,10 +16,12 @@ interface DataType {
   key: string;
   name: string;
   account: string;
+  phone?: string;
+  email?: string;
   departments: string[];
   roles: string[];
   status: boolean;
-  lastLogin: string;
+  lastLogin?: string;
 }
 
 const mockData: DataType[] = [
@@ -54,6 +57,28 @@ const mockData: DataType[] = [
 const UserManagement: React.FC<UserManagementProps> = ({ selectedDept }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<DataType | null>(null);
+  const [userData, setUserData] = useState<DataType[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // 英文: Fetch user data from backend
+  // 中文: 从后端获取用户数据
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const response: any = await request.get('/api/users/users/');
+      // 适配后端的自定义分页格式
+      const results = response.data?.results || response.results || response;
+      setUserData(results.map((item: any) => ({ ...item, key: item.id })));
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, [selectedDept]);
 
   const handleAdd = () => {
     setEditingUser(null);
@@ -86,6 +111,16 @@ const UserManagement: React.FC<UserManagementProps> = ({ selectedDept }) => {
       title: '账号 (Account)',
       dataIndex: 'account',
       key: 'account',
+    },
+    {
+      title: '手机号 (Phone)',
+      dataIndex: 'phone',
+      key: 'phone',
+    },
+    {
+      title: '邮箱 (Email)',
+      dataIndex: 'email',
+      key: 'email',
     },
     {
       title: '部门 (Departments)',
@@ -158,14 +193,18 @@ const UserManagement: React.FC<UserManagementProps> = ({ selectedDept }) => {
       <Table 
         rowSelection={{ type: 'checkbox' }} 
         columns={columns} 
-        dataSource={mockData} 
-        pagination={{ total: 42, showSizeChanger: true, showQuickJumper: true }}
+        dataSource={userData.length > 0 ? userData : mockData} 
+        loading={loading}
+        pagination={{ total: userData.length > 0 ? userData.length : 42, showSizeChanger: true, showQuickJumper: true }}
       />
 
       {/* 新增/编辑弹窗 (Add/Edit Modal) */}
       <UserEditModal 
         open={isModalOpen} 
-        onCancel={() => setIsModalOpen(false)} 
+        onCancel={() => {
+          setIsModalOpen(false);
+          fetchUsers(); // 英文: Refresh data after edit / 中文: 编辑后刷新数据
+        }} 
         userData={editingUser} 
       />
     </div>

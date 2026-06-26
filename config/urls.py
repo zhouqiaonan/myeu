@@ -8,7 +8,7 @@ urlpatterns = [
     
     # 英文: API Endpoints routed to their respective apps
     # 中文: 将 API 路由分发到各自的 App 中
-    # path('api/users/', include('users.urls')),
+    path('api/users/', include('users.urls')),
     # path('api/products/', include('products.urls')),
     # path('api/orders/', include('orders.urls')),
     

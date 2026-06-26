@@ -71,6 +71,8 @@ class User(AbstractUser):
     注意：移除了直接的 department 和 roles 外键，改为通过 UserDeptRole 中间表关联。
     Note: Removed direct department and roles foreign keys, use UserDeptRole instead.
     """
+    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name=_("手机号 (Phone)"))
+
     class Meta:
         db_table = "sys_user"
 

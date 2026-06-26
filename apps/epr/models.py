@@ -1,10 +1,26 @@
 from django.db import models
 from common.models import BaseModel
+from products.models import ProductItem
 
 from django.utils.translation import gettext_lazy as _
 
 # 英文: Create your models here.
 # 中文: 在这里创建你的模型。
+
+class Territory(BaseModel):
+    name_en = models.CharField(max_length=255)
+    name_cn = models.CharField(max_length=255)
+    
+    class Meta:
+        db_table = 'territory'
+
+class Currency(BaseModel):
+    code = models.CharField(max_length=10)
+    name = models.CharField(max_length=255)
+    
+    class Meta:
+        db_table = 'currency'
+
 
 class EprConfigModel(BaseModel):
     """
@@ -39,7 +55,7 @@ class EPRType(BaseModel):
     class Meta:
         verbose_name = _("EPR type")
         verbose_name_plural = _("EPR type")
-        app_label = 'mainapp'
+        app_label = 'epr'
         db_table = 'epr_types'
 
 
@@ -64,7 +80,7 @@ class EPRCodeSource(BaseModel):
         verbose_name = _("EPR Code Source")
         verbose_name_plural = _("EPR Code Source")
         unique_together = ('is_defined_by_law', 'org_name','org_name_short','type_in_territory')
-        app_label = 'mainapp'
+        app_label = 'epr'
         db_table = 'epr_code_sources'
 
 
@@ -79,7 +95,7 @@ class EPRTypesInTerritories(BaseModel):
         unique_together = ('territory', 'epr_type')
         verbose_name = _("EPR Type in Territory")
         verbose_name_plural = _("EPR Type in Territory")
-        app_label = 'mainapp'
+        app_label = 'epr'
         db_table = 'epr_types_in_territories'
 
     def __str__(self):
@@ -117,7 +133,7 @@ class EPRCode(BaseModel):
     class Meta:
         verbose_name = _("EPR Code")
         verbose_name_plural = _("EPR Code")
-        app_label = 'mainapp'
+        app_label = 'epr'
         db_table = 'epr_codes'
 
 
@@ -138,7 +154,7 @@ class EPRTemplate(BaseModel):
     class Meta:
         verbose_name = _("EPR Template")
         verbose_name_plural = _("EPR Template")
-        app_label = 'mainapp'
+        app_label = 'epr'
         db_table = 'epr_templates'
         permissions = [
             ('assign_eprtemplate', 'Can assign products to EPR template'),
@@ -158,7 +174,7 @@ class Territory2EPRTemplate(BaseModel):
         unique_together = ('template', 'code')
         verbose_name = _("Intermediate Table")
         verbose_name_plural = _("Intermediate Table")
-        app_label = 'mainapp'
+        app_label = 'epr'
         db_table = 'epr_territory_templates'
 
     def __str__(self):
@@ -170,7 +186,7 @@ class EPRBatteryChemicalType(BaseModel):
     name_cn = models.CharField(max_length=255)
 
     product_items = models.ManyToManyField(
-        'ProductItem',
+        'products.ProductItem',
         through='EPRBatteryProductItemRelation',
         related_name='battery_chemical_types',
         blank=True,
@@ -182,7 +198,7 @@ class EPRBatteryChemicalType(BaseModel):
     class Meta:
         verbose_name = _("EPR Battery Chemical Type")
         verbose_name_plural = _("EPR Battery Chemical Type")
-        app_label = 'mainapp'
+        app_label = 'epr'
         db_table = 'epr_battery_chemical_types'
 
 
@@ -195,7 +211,7 @@ class EPRBatteryProductItemRelation(models.Model):
     )
 
     product_item = models.ForeignKey(
-        'ProductItem',
+        'products.ProductItem',
         on_delete=models.PROTECT,
         related_name='battery_chemical_relations',
         verbose_name=_("Product Item"),
@@ -219,6 +235,6 @@ class EPRBatteryProductItemRelation(models.Model):
     class Meta:
         verbose_name = _("Battery Chemical–Item Relation")
         verbose_name_plural = _("Battery Chemical–Item Relations")
-        app_label = 'mainapp'
+        app_label = 'epr'
         db_table = 'epr_battery_product_item_relations'
         unique_together = [['battery_chemical_type', 'product_item']]

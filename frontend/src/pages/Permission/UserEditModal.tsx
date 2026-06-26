@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Form, Input, Switch, Button, Select, Space, Divider, Typography } from 'antd';
+import { Modal, Form, Input, Switch, Button, Select, Space, Divider, Typography, message } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import request from '../../utils/request';
 
 const { Option } = Select;
 const { Title, Text } = Typography;
@@ -38,6 +39,8 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ open, onCancel, userData 
         form.setFieldsValue({
           name: userData.name,
           account: userData.account,
+          phone: userData.phone,
+          email: userData.email,
           status: userData.status,
         });
         // 模拟数据回显 (Mock data echo)
@@ -77,11 +80,30 @@ const UserEditModal: React.FC<UserEditModalProps> = ({ open, onCancel, userData 
   };
 
   const handleSave = () => {
-    form.validateFields().then(values => {
+    form.validateFields().then(async (values) => {
       console.log('Form Values:', values);
       console.log('Dept Roles:', deptRoles);
-      // 提交到后端 (Submit to backend)
-      onCancel();
+      
+      try {
+        const payload = {
+          ...values,
+          deptRoles: deptRoles,
+        };
+
+        if (userData) {
+          // 编辑用户 (Edit user)
+          await request.put(`/api/users/users/${userData.key}/`, payload);
+          message.success('用户更新成功 (User updated successfully)');
+        } else {
+          // 新增用户 (Add user)
+          await request.post('/api/users/users/', payload);
+          message.success('用户创建成功 (User created successfully)');
+        }
+        onCancel();
+      } catch (error) {
+        console.error('Failed to save user:', error);
+        // Error message is already handled by axios interceptor
+      }
     });
   };
 

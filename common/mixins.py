@@ -1,5 +1,5 @@
 from django.db.models import Q
-from apps.users.models import UserDeptRole, Department
+from users.models import UserDeptRole, Department
 
 class ContextDataScopeMixin:
     """

@@ -1,60 +1,64 @@
-version: '3.8'
-
 services:
+  # PostgreSQL Database / PostgreSQL 数据库
   db:
-    image: postgres:15-alpine
-    # 英文: Load environment variables directly from .env file
-    # 中文: 直接从 .env 文件加载环境变量给 PostgreSQL 容器
-    env_file:
-      - .env
+    image: ${POSTGRES_IMAGE:-postgres:15-alpine}
+    container_name: ${POSTGRES_CONTAINER:-myeu-postgres}
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      TZ: Asia/Shanghai
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:${POSTGRES_DATA_PATH:-/var/lib/postgresql/data}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: ${HEALTHCHECK_INTERVAL:-10s}
+      timeout: ${HEALTHCHECK_TIMEOUT:-5s}
+      retries: ${HEALTHCHECK_RETRIES:-5}
 
+  # Redis Cache / Redis 缓存
   redis:
-    image: redis:7-alpine
+    image: ${REDIS_IMAGE:-redis:7-alpine}
+    container_name: ${REDIS_CONTAINER:-myeu-redis}
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:${REDIS_DATA_PATH:-/data}
+    restart: unless-stopped
+    command: redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass $REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: ${HEALTHCHECK_INTERVAL:-10s}
+      timeout: ${HEALTHCHECK_TIMEOUT:-5s}
+      retries: ${HEALTHCHECK_RETRIES:-5}
 
+  # RabbitMQ Message Broker / RabbitMQ 消息队列
   rabbitmq:
-    image: rabbitmq:3-management-alpine
+    image: ${RABBITMQ_IMAGE:-rabbitmq:3-management-alpine}
+    container_name: ${RABBITMQ_CONTAINER:-myeu-rabbitmq}
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
     ports:
-      - "5672:5672"
-      - "15672:15672"
-
-  web:
-    build: .
-    command: bash -c "python manage.py collectstatic --noinput && python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:8000"
-    ports:
-      - "8000:8000"
+      - "${RABBITMQ_AMQP_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
     volumes:
-      - .:/app
-      - static_volume:/app/staticfiles
-    depends_on:
-      - db
-      - redis
-      - rabbitmq
-    # 英文: Pass the .env file and set production mode
-    # 中文: 传递 .env 文件并指定为生产模式
-    env_file:
-      - .env
-    environment:
-      - DJANGO_SETTINGS_MODULE=config.settings.production
-
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - static_volume:/app/staticfiles
-    depends_on:
-      - web
+      - rabbitmq_data:${RABBITMQ_DATA_PATH:-/var/lib/rabbitmq}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: ${HEALTHCHECK_INTERVAL:-30s}
+      timeout: ${HEALTHCHECK_TIMEOUT:-10s}
+      retries: ${HEALTHCHECK_RETRIES:-5}
 
 volumes:
   postgres_data:
-  static_volume:
+    name: ${POSTGRES_VOLUME:-postgres_data}
+  redis_data:
+    name: ${REDIS_VOLUME:-redis_data}
+  rabbitmq_data:
+    name: ${RABBITMQ_VOLUME:-rabbitmq_data}

@@ -1,5 +1,5 @@
 from rest_framework.permissions import BasePermission
-from apps.users.models import UserDeptRole
+from users.models import UserDeptRole
 
 class ContextRBACPermission(BasePermission):
     """

@@ -1,5 +1,5 @@
 from django.db import models
-from apps.users.models import User, Department
+from users.models import User, Department
 from django.utils.translation import gettext_lazy as _
 
 class Order(models.Model):

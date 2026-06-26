@@ -4,8 +4,8 @@ from common.permissions import RBACPermission
 from common.mixins import DataScopeMixin
 
 # 假设存在以下模型和序列化器 (Assuming the following model and serializer exist)
-# from apps.orders.models import Order
-# from apps.orders.serializers import OrderSerializer
+# from orders.models import Order
+# from orders.serializers import OrderSerializer
 
 class OrderViewSet(DataScopeMixin, viewsets.ModelViewSet):
     """

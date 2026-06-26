@@ -96,7 +96,7 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'zh-hans'
 TIME_ZONE = 'Asia/Shanghai'
 USE_I18N = True
-USE_TZ = True
+USE_TZ = False
 
 # 英文: Static files (CSS, JavaScript, Images)
 # 中文: 静态文件 (CSS, JavaScript, Images)
@@ -105,6 +105,8 @@ STATIC_URL = 'static/'
 # 英文: Default primary key field type
 # 中文: 默认主键字段类型
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+AUTH_USER_MODEL = 'users.User'
 
 # 英文: Django REST Framework Global Settings
 # 中文: Django REST Framework 全局配置
